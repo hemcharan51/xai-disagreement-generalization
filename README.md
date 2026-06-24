@@ -93,6 +93,11 @@ projected onto the same feature indices, and measure pairwise Rank Agreement
 
 ## Results
 
+**Bottom line:** across two datasets, model quality leaves a measurable mark on
+XAI consensus, but it is a weak signal — agreement drifts down as a model
+overfits, "more agreement" does not mean "better explanation," and methods split
+into families that agree with their own kind. Details below.
+
 ### Models trained (accuracy / generalization gap)
 
 **Adult Income (MLP), k = 10**
@@ -113,6 +118,11 @@ projected onto the same feature indices, and measure pairwise Rank Agreement
 | D — Label-Poison | 0.965 | 0.957 | 0.008 |
 | B — Overfit | 0.961 | 0.958 | 0.003 |
 
+*In short:* on Adult Income the gaps behave as designed — the Overfit model (B)
+has the largest train/test gap and Feature-Noise (C) the smallest. On MNIST even
+the "overfit" CNN generalizes well, so every gap is tiny — which is why the MNIST
+effects below come out smaller.
+
 ### Finding 1 — Consensus tracks generalization
 
 Mean pairwise SRA is highest for the well-generalizing controls and lowest for
@@ -125,10 +135,16 @@ the overfit model on both datasets.
 | D — Label-Poison | 0.187 | 0.343 |
 | B — Overfit | 0.190 | 0.309 |
 
+![Finding 1 — SRA across the generalization spectrum](figures/finding1_sra.png)
+
 Control → Overfit SRA decline: **1.8%** (Adult), **6.1%** (MNIST). The effect is
 real but modest, and not strictly monotonic — the feature-noise variant (C)
 edges out the control, which we read as label noise hurting consensus more than
 input noise.
+
+*In short:* explanation methods agree most on a healthy model and least on an
+overfit one — evidence that disagreement is partly about the model, not just the
+methods.
 
 ### Finding 2 — The Uncertainty Paradox
 
@@ -143,8 +159,14 @@ degraded models give flat, near-zero attributions, so methods can trivially
 | D | −0.19 | −0.19 |
 | B | −0.07 | 0.17 |
 
+![Finding 2 — entropy vs SRA correlation per variant](figures/finding2_uncertainty.png)
+
 The sign flips across variants — high agreement is not evidence of an
 informative explanation.
+
+*In short:* a degraded model can make methods "agree" simply because all their
+attributions collapse toward zero. Consensus can be a sign of a broken model, not
+a trustworthy one.
 
 ### Finding 3 — Family-structured disagreement
 
@@ -157,10 +179,16 @@ SmoothGrad agree far more than the gradient/perturbation cross-pairs.
 | IG–SmoothGrad | ~0.08 | ~0.31 |
 | LIME–IG | ~0.10 | ~0.31 |
 
+![Finding 3 — sign agreement by method pair](figures/finding3_families.png)
+
 On COMPAS the framework check shows the same family structure: gradient methods
 cluster tightly (Grad–SmoothGrad SRA 0.60) and LIME–KernelSHAP cluster (SRA
 0.52), confirming the metric implementations behave as expected before we apply
 them to our own models.
+
+*In short:* methods agree mostly with others of the same type (gradient-based vs.
+perturbation-based), so within-family agreement reflects shared assumptions, not
+proof that the explanation is correct.
 
 ---
 
